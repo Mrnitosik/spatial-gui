@@ -1,0 +1,301 @@
+import net.fabricmc.loom.task.RemapJarTask
+
+plugins {
+    id 'dev.kikugie.loom-back-compat' apply false
+    id 'net.neoforged.moddev' version '2.0.147' apply false
+    id 'net.neoforged.moddev.legacyforge' version '2.0.147' apply false
+    id 'maven-publish'
+    id "me.modmuss50.mod-publish-plugin" version "2.2.1"
+}
+
+version = project.mod_version
+group = project.maven_group
+
+def dependencyVersions = [
+        "1.20.1-forge":    [minecraft: "1.20.1", minecraft_dependency: "1.20.1", forge: "1.20.1-47.2.20", yacl: "3.6.6+1.20.1-forge", obfuscated: true, java: 17],
+        "1.20.1-fabric":   [minecraft: "1.20.1", minecraft_dependency: "1.20.1", fabric: "0.92.2+1.20.1", loader: "0.19.3", yacl: "3.6.6+1.20.1-fabric", modmenu: "7.2.2", obfuscated: true, java: 17],
+        "1.21.1-neoforge": [minecraft: "1.21.1", minecraft_dependency: "1.21.1", neoforge: "21.1.240", yacl: "3.6.1+1.21-neoforge", obfuscated: true, java: 21],
+        "1.21.1-fabric":   [minecraft: "1.21.1", minecraft_dependency: "1.21.1", fabric: "0.116.0+1.21.1", loader: "0.19.3", yacl: "3.6.1+1.21-fabric", modmenu: "11.0.4", obfuscated: true, java: 21],
+        "1.21.4-fabric":   [minecraft: "1.21.4", minecraft_dependency: "1.21.4", fabric: "0.119.4+1.21.4", loader: "0.19.3", yacl: "3.6.6+1.21.4-fabric", modmenu: "13.0.3", obfuscated: true, java: 21],
+        "1.21.11-neoforge":[minecraft: "1.21.11", minecraft_dependency: ">=1.21.6 <=1.21.11", neoforge: "21.11.42", yacl: "3.8.2+1.21.11-neoforge", obfuscated: true, java: 21],
+        "1.21.11-fabric":  [minecraft: "1.21.11", minecraft_dependency: ">=1.21.6 <=1.21.11", fabric: "0.140.0+1.21.11", loader: "0.19.3", yacl: "3.8.2+1.21.11-fabric", modmenu: "17.0.0", obfuscated: true, java: 21],
+        "26.1.2-fabric":   [minecraft: "26.1.2", minecraft_dependency: ">=26.1 <=26.1.2", fabric: "0.150.0+26.1.2", yacl: "3.9.3+26.1-fabric", modmenu: "18.0.0", java: 25],
+        "26.1.2-neoforge": [minecraft: "26.1.2", minecraft_dependency: ">=26.1 <=26.1.2", neoforge: "26.1.0.19-beta", yacl: "3.9.3+26.1-neoforge", java: 25],
+        "26.2-fabric":     [minecraft: "26.2", minecraft_dependency: "26.2", fabric: "0.155.2+26.2", yacl: "3.9.7+26.2-fabric", modmenu: "20.0.1", java: 25],
+        "26.3-fabric":     [minecraft: "26.3", minecraft_dependency: "26.3", fabric: "0.160.5+26.3", yacl: "3.9.7+26.3-fabric", modmenu: "21.0.0-beta.1", java: 25],
+        "26.2-neoforge":   [minecraft: "26.2", minecraft_dependency: "26.2", neoforge: "26.2.0.60", yacl: "3.9.7+26.2-neoforge", java: 25],
+        "26.3-neoforge":   [minecraft: "26.3", minecraft_dependency: "26.3", neoforge: "26.3.0.10-beta", yacl: "3.9.7+26.3-neoforge", java: 25],
+]
+
+def nodeName = stonecutter.current.project
+def loader = nodeName.substring(nodeName.lastIndexOf('-') + 1)
+def isFabric = loader == 'fabric'
+def isNeoForge = loader == 'neoforge'
+def isForge = loader == 'forge'
+def isObfuscated = (dependencyVersions[nodeName]?.obfuscated) ?: false
+
+if (isFabric) {
+    apply plugin: 'dev.kikugie.loom-back-compat'
+} else if (isNeoForge) {
+    apply plugin: 'net.neoforged.moddev'
+} else if (isForge) {
+    apply plugin: 'net.neoforged.moddev.legacyforge'
+}
+
+if (project.hasProperty('stonecutter')) {
+    def currentVersions = dependencyVersions[nodeName]
+    project.ext.minecraft_version = currentVersions.minecraft
+    project.ext.minecraft_dependency = currentVersions.minecraft_dependency ?: "~${currentVersions.minecraft}"
+    project.ext.yacl_version = currentVersions.yacl
+    project.ext.is_obfuscated = isObfuscated
+    if (isFabric) {
+        project.ext.fabric_version = currentVersions.fabric
+        project.ext.modmenu_version = currentVersions.modmenu
+        if (currentVersions.loader) {
+            project.ext.loader_version = currentVersions.loader
+        }
+    } else if (isNeoForge) {
+        project.ext.neoforge_version = currentVersions.neoforge
+    } else if (isForge) {
+        project.ext.forge_version = currentVersions.forge
+    }
+}
+
+base {
+    archivesName = "${project.archives_base_name}-${project.version}+${project.minecraft_version}-${loader}"
+}
+
+jar {
+    archiveVersion = ""
+}
+
+if (isFabric) {
+    tasks.withType(RemapJarTask).configureEach {
+        archiveBaseName = "${project.archives_base_name}-${project.version}+${project.minecraft_version}-${loader}"
+        archiveVersion = ""
+    }
+}
+
+repositories {
+    maven { name = "Xander"; url = "https://maven.isxander.dev/releases" }
+    if (isFabric) {
+        maven { name = "Fabric"; url = "https://maven.fabricmc.net/" }
+        maven { name = "Terraformers"; url = "https://maven.terraformersmc.com/" }
+    }
+    if (isNeoForge) {
+        maven { name = "Mojang"; url = "https://libraries.minecraft.net" }
+        maven { name = "Kotlin for Forge"; url = "https://thedarkcolour.github.io/KotlinForForge/" }
+    }
+    if (isForge) {
+        maven { name = "MinecraftForge"; url = "https://maven.minecraftforge.net/" }
+    }
+}
+dependencies {
+    if (isFabric) {
+        minecraft "com.mojang:minecraft:${project.minecraft_version}"
+        if (project.is_obfuscated) {
+            mappings loom.layered {
+                officialMojangMappings()
+            }
+        }
+        modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+        modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+        modImplementation "dev.isxander:yet-another-config-lib:${project.yacl_version}"
+        modImplementation "com.terraformersmc:modmenu:${project.modmenu_version}"
+    } else if (isNeoForge) {
+        implementation("dev.isxander:yet-another-config-lib:${project.yacl_version}") {
+            exclude group: 'thedarkcolour'
+        }
+    } else if (isForge) {
+        modImplementation "dev.isxander:yet-another-config-lib:${project.yacl_version}"
+        compileOnly 'org.spongepowered:mixin:0.8.5'
+        annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+
+        compileOnly(annotationProcessor("io.github.llamalad7:mixinextras-common:0.4.1"))
+        implementation "io.github.llamalad7:mixinextras-forge:0.4.1"
+        jarJar("io.github.llamalad7:mixinextras-forge:0.4.1") {
+            version { strictly '[0.4.1,)'; prefer '0.4.1' }
+        }
+    }
+}
+
+if (isForge) {
+    mixin {
+        add sourceSets.main, "spatial-gui.refmap.json"
+        config "spatial-gui.mixins.json"
+    }
+    jar {
+        manifest.attributes 'MixinConfigs': 'spatial-gui.mixins.json'
+    }
+}
+
+if (isNeoForge) {
+    neoForge {
+        version = project.neoforge_version
+        validateAccessTransformers = true
+        runs {
+            client { client() }
+            server { server() }
+        }
+        mods {
+            "spatial_gui" {
+                sourceSet sourceSets.main
+            }
+        }
+    }
+}
+
+if (isForge) {
+    legacyForge {
+        version = project.forge_version
+        runs { client { client() } }
+        mods { "spatial_gui" { sourceSet sourceSets.main } }
+    }
+}
+
+processResources {
+    inputs.property "version", project.version
+    inputs.property "minecraft_version", project.minecraft_version
+    filteringCharset "UTF-8"
+
+    if (isFabric) {
+        exclude "META-INF/neoforge.mods.toml"
+        exclude "META-INF/mods.toml"
+        inputs.property "loader_version", project.loader_version
+        inputs.property "minecraft_dependency", project.minecraft_dependency
+        inputs.property "yacl_version", project.yacl_version
+        filesMatching("fabric.mod.json") {
+            expand "version": project.version,
+                    "minecraft_dependency": project.minecraft_dependency,
+                    "minecraft_version": project.minecraft_version,
+                    "loader_version": project.loader_version,
+                    "yacl_version": project.yacl_version
+        }
+    } else if (isNeoForge) {
+        exclude "fabric.mod.json"
+        exclude "META-INF/mods.toml"
+        inputs.property "neoforge_version", project.neoforge_version
+        inputs.property "minecraft_dependency", project.minecraft_dependency
+        filesMatching("META-INF/neoforge.mods.toml") {
+            expand "version": project.version,
+                    "minecraft_version": project.minecraft_version,
+                    "neoforge_version": project.neoforge_version,
+                    "minecraft_dependency": project.minecraft_dependency
+        }
+    } else if (isForge) {
+        exclude "fabric.mod.json"
+        exclude "META-INF/neoforge.mods.toml"
+        inputs.property "forge_version", project.forge_version
+        inputs.property "minecraft_dependency", project.minecraft_dependency
+        filesMatching("META-INF/mods.toml") {
+            expand "version": project.version,
+                    "minecraft_version": project.minecraft_version,
+                    "forge_version": project.forge_version,
+                    "minecraft_dependency": project.minecraft_dependency
+        }
+    }
+}
+
+def targetJavaVersion = dependencyVersions[nodeName]?.java ?: 25
+tasks.withType(JavaCompile).configureEach {
+    // ensure that the encoding is set to UTF-8, no matter what the system default is
+    // this fixes some edge cases with special characters not displaying correctly
+    // see http://yodaconditions.net/blog/fix-for-java-file-encoding-problems-with-gradle.html
+    // If Javadoc is generated, this must be specified in that task too.
+    it.options.encoding = "UTF-8"
+    if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible()) {
+        it.options.release.set(targetJavaVersion)
+    }
+}
+
+java {
+    def javaVersion = JavaVersion.toVersion(targetJavaVersion)
+    if (JavaVersion.current() < javaVersion) {
+        toolchain.languageVersion = JavaLanguageVersion.of(targetJavaVersion)
+    }
+    // Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
+    // if it is present.
+    // If you remove this line, sources will not be generated.
+    withSourcesJar()
+}
+
+jar {
+    from("LICENSE") {
+        rename { "${it}_${project.archives_base_name}" }
+    }
+}
+
+// configure the maven publication
+publishing {
+    publications {
+        create("mavenJava", MavenPublication) {
+            artifactId = project.archives_base_name
+            from components.java
+        }
+    }
+
+    // See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
+    repositories {
+        // Add repositories to publish to here.
+        // Notice: This block does NOT have the same function as the block in the top level.
+        // The repositories here will be used for publishing your artifact, not for
+        // retrieving dependencies.
+    }
+}
+
+if (project.hasProperty('stonecutter')) {
+    publishMods {
+        file = isForge
+                ? tasks.named("reobfJar").flatMap { it.archiveFile }
+                : ((isFabric && isObfuscated) ? remapJar.archiveFile : jar.archiveFile)
+        changelog = rootProject.file("CHANGELOG.md").text
+        type = STABLE
+        modLoaders.add(loader)
+
+        def loaderName = isFabric ? "Fabric" : (isForge ? "Forge" : "NeoForge")
+        def displayMc = project.minecraft_version == "26.1.2" ? "26.1.x" : project.minecraft_version
+        displayName = "[${loaderName} ${displayMc}] v${project.version}"
+
+        curseforge {
+            projectId = "1676741"
+            accessToken = providers.gradleProperty("CURSEFORGE_TOKEN")
+            minecraftVersions.add(project.minecraft_version)
+            if (project.minecraft_version == "26.1.2") {
+                minecraftVersions.add("26.1.1")
+                minecraftVersions.add("26.1")
+            }
+            client = true
+            server = false
+            if (isFabric) {
+                requires("fabric-api")
+                requires("yacl")
+                requires("modmenu")
+            } else if (isNeoForge || isForge) {
+                requires("yacl")
+            }
+        }
+
+        modrinth {
+            projectId = "zLBn2IE4"
+            accessToken = providers.gradleProperty("MODRINTH_TOKEN")
+            minecraftVersions.add(project.minecraft_version)
+            if (project.minecraft_version == "26.1.2") {
+                minecraftVersions.add("26.1.1")
+                minecraftVersions.add("26.1")
+            }
+            def loaderVersionName = isFabric ? "fabric" : (isForge ? "forge" : "neoforge")
+            def versionMc = project.minecraft_version == "26.1.2" ? "26.1.x" : project.minecraft_version
+            version = "${project.version}-${loaderVersionName}+${versionMc}"
+            displayName = "Spatial GUI ${project.version} (${loaderName} ${versionMc})"
+            if (isFabric) {
+                requires("fabric-api")
+                requires("yacl")
+                requires("modmenu")
+            } else if (isNeoForge || isForge) {
+                requires("yacl")
+            }
+        }
+
+        dryRun = true
+    }
+}

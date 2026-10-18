@@ -1,0 +1,53 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "org.tastytrash.spatialGUI.mixin",
+  "refmap": "spatial-gui.refmap.json",
+  "compatibilityLevel": "JAVA_17",
+  "mixins": [
+    "compat.ControlifyMixin",
+    "compat.SophisticatedCoreMixin"
+  ],
+  "client": [
+    "client.AbstractRecipeBookScreenMixin",
+    "client.EntityMixin",
+    "client.LocalPlayerMixin",
+    "client.MinecraftMixin",
+    "client.OptionsMixin",
+    "compat.DynamicCrosshairMixin",
+    "compat.PolytoneMixin",
+    "gui.DebugScreenOverlayMixin",
+    "gui.GuiGraphicsCursorMixin",
+    "gui.GuiMixin",
+    "gui.GuiRendererAccessor",
+    "gui.GuiRendererMixin",
+    "gui.HudMixin",
+    "gui.MouseHandlerAccessor",
+    "gui.MouseHandlerMixin",
+    "gui.MouseHandlerSwingMixin",
+    "gui.PauseScreenMixin",
+    "gui.ScreenInvoker",
+    "gui.ScreenLayoutMixin",
+    "gui.ScreenMixin",
+    "gui.SubtitleOverlayMixin",
+    "gui.WindowMixin",
+    "input.InputConstantsMixin",
+    "render.AvatarRendererMixin",
+    "render.CameraMixin",
+    "render.EntityRenderDispatcherMixin",
+    "render.GameRendererAccessor",
+    "render.GameRendererInvoker",
+    "render.GameRendererMixin",
+    "render.HandRendererMixin",
+    "render.LevelRendererMixin",
+    "render.OwoBlurMixin",
+    "render.PlayerModelMixin",
+    "render.RenderTargetMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "overwrites": {
+    "requireAnnotations": true
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "spatial-gui",
+  "version": "${version}",
+  "name": "Spatial GUI",
+  "description": "A client-side mod that renders inventory & container screens as a 3D plane.\n\n§e[!] §cSpatial GUI is still in early development and may not be fully compatible with some of your mods. If something doesn't work correctly please report the issue to help make the mod better for everyone!",
+  "authors": [],
+  "contact": {
+    "homepage": "https://github.com/tastytrash/Spatial-GUI",
+    "sources": "https://github.com/tastytrash/Spatial-GUI",
+    "issues": "https://github.com/tastytrash/Spatial-GUI/issues"
+  },
+  "license": "MIT",
+  "icon": "assets/spatial-gui/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "org.tastytrash.spatialGUI.client.SpatialGUIClient"
+    ],
+    "modmenu": [
+      "org.tastytrash.spatialGUI.client.SpatialGUIModMenu"
+    ]
+  },
+  "mixins": [
+    "spatial-gui.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric-api": "*",
+    "minecraft": "${minecraft_dependency}",
+    "yet_another_config_lib_v3": ">=${yacl_version}"
+  }
+}
